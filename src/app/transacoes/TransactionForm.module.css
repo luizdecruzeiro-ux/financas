@@ -1,0 +1,95 @@
+.amountInput {
+  font-size: 1.4rem;
+  font-weight: 600;
+  padding: 12px 14px;
+}
+
+.toggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+
+.toggleOn,
+.toggleOff {
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  transition: background 0.15s ease;
+}
+
+.toggleOn {
+  background: var(--income);
+  justify-content: flex-end;
+}
+
+.toggleOff {
+  background: var(--border);
+  justify-content: flex-start;
+}
+
+.toggleKnob {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  display: block;
+}
+
+.dateShortcuts {
+  display: flex;
+  gap: 8px;
+}
+
+.chip,
+.chipActive {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.chipActive {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.detailsToggle {
+  background: none;
+  border: none;
+  color: var(--primary-dark);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 0;
+  margin-bottom: 12px;
+}
+
+.detailsSection {
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+  margin-bottom: 8px;
+}
+
+.detailsSection textarea {
+  resize: vertical;
+}
+
+.attachmentLink {
+  font-size: 0.8rem;
+  color: var(--primary-dark);
+  margin-top: 6px;
+  display: inline-block;
+}

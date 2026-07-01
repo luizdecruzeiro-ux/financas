@@ -1,0 +1,20 @@
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+  gap: 8px;
+  color: var(--text-light);
+}
+
+.title {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.description {
+  font-size: 0.88rem;
+  max-width: 320px;
+}

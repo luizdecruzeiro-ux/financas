@@ -1,0 +1,154 @@
+.summaryRow {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 900px) {
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.card h3 {
+  font-size: 1rem;
+  margin-bottom: 12px;
+}
+
+.onboarding {
+  background: var(--surface-alt);
+  border: 1px dashed var(--primary-light);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.onboardingSubtitle {
+  color: var(--text-light);
+  font-size: 0.88rem;
+  margin: 4px 0 14px;
+}
+
+.onboardingList {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.onboardingItem {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 9px 14px;
+  font-size: 0.87rem;
+  color: var(--primary-dark);
+  font-weight: 500;
+}
+
+.onboardingItem:hover {
+  border-color: var(--primary-light);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+}
+
+.listRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.listRow:last-child {
+  border-bottom: none;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.listLabel {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.listValue {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.budgetRow {
+  margin-bottom: 14px;
+}
+
+.budgetLabelRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.86rem;
+  margin-bottom: 6px;
+  color: var(--text-light);
+}
+
+.progressTrack {
+  height: 8px;
+  background: var(--surface-alt);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 6px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.table td {
+  padding: 10px 6px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.amountIncome {
+  color: var(--income);
+  font-weight: 600;
+  text-align: right;
+}
+
+.amountExpense {
+  color: var(--expense);
+  font-weight: 600;
+  text-align: right;
+}

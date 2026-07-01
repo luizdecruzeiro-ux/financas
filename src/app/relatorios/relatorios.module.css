@@ -1,0 +1,48 @@
+.summaryRow {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.summaryCard {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 180px;
+}
+
+.summaryLabel {
+  font-size: 0.82rem;
+  color: var(--text-light);
+}
+
+.summaryIncome {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--income);
+}
+
+.summaryExpense {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--expense);
+}
+
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.card h3 {
+  font-size: 1rem;
+  margin-bottom: 12px;
+}

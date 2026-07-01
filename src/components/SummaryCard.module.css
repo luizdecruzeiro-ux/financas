@@ -1,0 +1,33 @@
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 180px;
+  flex: 1;
+}
+
+.label {
+  font-size: 0.82rem;
+  color: var(--text-light);
+}
+
+.value {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.neutral {
+  color: var(--text);
+}
+
+.income {
+  color: var(--income);
+}
+
+.expense {
+  color: var(--expense);
+}

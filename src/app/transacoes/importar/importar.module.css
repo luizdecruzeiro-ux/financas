@@ -1,0 +1,92 @@
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  max-width: 900px;
+}
+
+.summary {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  margin-bottom: 16px;
+}
+
+.successMessage {
+  font-size: 1rem;
+  margin-bottom: 16px;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  margin-bottom: 16px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  min-width: 720px;
+}
+
+.table th {
+  text-align: left;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-light);
+  padding: 10px 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.table td {
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.duplicateRow {
+  background: var(--surface-alt);
+}
+
+.cellInput {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  width: 100%;
+  min-width: 110px;
+  font-size: 0.85rem;
+}
+
+.cellInputSmall {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  width: 90px;
+  font-size: 0.85rem;
+  margin-right: 6px;
+}
+
+.amountIncome {
+  color: var(--income);
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.amountExpense {
+  color: var(--expense);
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.badgeIncome {
+  color: var(--income);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.badgeExpense {
+  color: var(--expense);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
