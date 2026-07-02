@@ -87,6 +87,12 @@
   resize: vertical;
 }
 
+.hint {
+  font-size: 0.78rem;
+  color: var(--text-light);
+  margin: -10px 0 16px;
+}
+
 .attachmentLink {
   font-size: 0.8rem;
   color: var(--primary-dark);

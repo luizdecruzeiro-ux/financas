@@ -19,6 +19,11 @@ const TYPE_OPTIONS = [
   { value: "TRANSFER", label: "Transferência" },
 ];
 
+// "Despesa/Receita fixa" gera lançamentos mensais pelos próximos 2 anos de
+// uma vez — não existe recorrência "infinita" no modelo atual, cada ocorrência
+// é uma linha própria. Passado esse prazo, um novo lançamento fixo pode ser criado.
+const FIXED_MONTHS = 24;
+
 const REPEAT_UNIT_OPTIONS: { value: RepeatUnit; label: string }[] = [
   { value: "day", label: "Diária" },
   { value: "week", label: "Semanal" },
@@ -73,6 +78,7 @@ export default function TransactionForm({
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [tagsInput, setTagsInput] = useState(transaction?.tags?.join(", ") ?? "");
   const [note, setNote] = useState(transaction?.note ?? "");
+  const [isFixed, setIsFixed] = useState(false);
   const [repeatEnabled, setRepeatEnabled] = useState(false);
   const [repeatCount, setRepeatCount] = useState("2");
   const [repeatUnit, setRepeatUnit] = useState<RepeatUnit>("month");
@@ -146,9 +152,16 @@ export default function TransactionForm({
       creditCardId: type === "CARD_EXPENSE" ? creditCardId || null : null,
       categoryId: type === "TRANSFER" ? null : categoryId || null,
       installments: type === "CARD_EXPENSE" ? Math.max(1, Number(installments) || 1) : 1,
-      repeatCount: !transaction && repeatEnabled && type !== "CARD_EXPENSE" ? Math.max(1, Number(repeatCount) || 1) : 1,
-      repeatUnit,
-      isRecurring: repeatEnabled,
+      repeatCount: !transaction
+        ? isFixed
+          ? FIXED_MONTHS
+          : repeatEnabled && type !== "CARD_EXPENSE"
+          ? Math.max(1, Number(repeatCount) || 1)
+          : 1
+        : 1,
+      repeatUnit: isFixed ? "month" : repeatUnit,
+      suppressOccurrenceLabel: isFixed,
+      isRecurring: isFixed || repeatEnabled,
       ignored,
       tags,
       note: note.trim() || null,
@@ -363,7 +376,26 @@ export default function TransactionForm({
             <textarea id="note" rows={3} value={note} onChange={(e) => setNote(e.target.value)} />
           </div>
 
-          {!transaction && type !== "CARD_EXPENSE" ? (
+          {!transaction && (type === "INCOME" || type === "EXPENSE") ? (
+            <>
+              <div className={styles.toggleRow}>
+                <span>{type === "INCOME" ? "Receita fixa" : "Despesa fixa"}</span>
+                <button
+                  type="button"
+                  className={isFixed ? styles.toggleOn : styles.toggleOff}
+                  onClick={() => setIsFixed((v) => !v)}
+                  aria-pressed={isFixed}
+                >
+                  <span className={styles.toggleKnob} />
+                </button>
+              </div>
+              {isFixed ? (
+                <p className={styles.hint}>Repete todo mês pelos próximos {FIXED_MONTHS} meses.</p>
+              ) : null}
+            </>
+          ) : null}
+
+          {!transaction && !isFixed && type !== "CARD_EXPENSE" ? (
             <>
               <div className={styles.toggleRow}>
                 <span>Repetir</span>

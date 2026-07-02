@@ -20,6 +20,7 @@ export type TransactionInput = {
   installments?: number; // parcelamento de cartão: divide o valor, sempre mensal
   repeatCount?: number; // recorrência genérica: repete o valor cheio
   repeatUnit?: RepeatUnit;
+  suppressOccurrenceLabel?: boolean; // não sufixar "(i/N)" na descrição — usado por despesa/receita fixa
   ignored?: boolean;
   tags?: string[];
   note?: string | null;
@@ -74,44 +75,54 @@ export async function createTransaction(input: TransactionInput) {
 
   const baseDate = new Date(input.date);
   const ignored = input.ignored ?? false;
+  const perOccurrenceAmount = divideAmount ? Math.round((input.amount / occurrences) * 100) / 100 : input.amount;
+
+  // Build all occurrence rows up front and insert them in a single query —
+  // looping create() calls one at a time against a remote pooled connection
+  // easily blows past Prisma's interactive-transaction timeout once
+  // `occurrences` gets into the dozens (e.g. a 24x "despesa fixa").
+  let paidOccurrences = 0;
+  const rows = Array.from({ length: occurrences }, (_, i) => {
+    const occurrenceStatus: TransactionStatus = i === 0 || !downgradeFutureOccurrences ? input.status : "PENDING";
+    if (occurrenceStatus === "PAID") paidOccurrences += 1;
+
+    return {
+      description:
+        occurrences > 1 && !input.suppressOccurrenceLabel
+          ? `${input.description} (${i + 1}/${occurrences})`
+          : input.description,
+      amount: perOccurrenceAmount,
+      date: addInterval(baseDate, unit, i),
+      type: input.type,
+      status: occurrenceStatus,
+      accountId: input.accountId || null,
+      toAccountId: input.toAccountId || null,
+      creditCardId: input.creditCardId || null,
+      categoryId: input.categoryId || null,
+      isRecurring: input.isRecurring ?? occurrences > 1,
+      installmentNumber: occurrences > 1 ? i + 1 : null,
+      installmentTotal: occurrences > 1 ? occurrences : null,
+      ignored,
+      tags: input.tags ?? [],
+      note: input.note || null,
+      attachmentUrl: input.attachmentUrl || null,
+    };
+  });
 
   await prisma.$transaction(async (tx) => {
-    const perOccurrenceAmount = divideAmount ? Math.round((input.amount / occurrences) * 100) / 100 : input.amount;
+    await tx.transaction.createMany({ data: rows });
 
-    for (let i = 0; i < occurrences; i++) {
-      const date = addInterval(baseDate, unit, i);
-      const occurrenceStatus: TransactionStatus =
-        i === 0 || !downgradeFutureOccurrences ? input.status : "PENDING";
-
-      await tx.transaction.create({
-        data: {
-          description:
-            occurrences > 1 ? `${input.description} (${i + 1}/${occurrences})` : input.description,
-          amount: perOccurrenceAmount,
-          date,
+    if (paidOccurrences > 0 && !ignored) {
+      await applyBalanceEffect(
+        tx,
+        {
           type: input.type,
-          status: occurrenceStatus,
-          accountId: input.accountId || null,
-          toAccountId: input.toAccountId || null,
-          creditCardId: input.creditCardId || null,
-          categoryId: input.categoryId || null,
-          isRecurring: input.isRecurring ?? occurrences > 1,
-          installmentNumber: occurrences > 1 ? i + 1 : null,
-          installmentTotal: occurrences > 1 ? occurrences : null,
-          ignored,
-          tags: input.tags ?? [],
-          note: input.note || null,
-          attachmentUrl: input.attachmentUrl || null,
+          amount: perOccurrenceAmount * paidOccurrences,
+          accountId: input.accountId,
+          toAccountId: input.toAccountId,
         },
-      });
-
-      if (occurrenceStatus === "PAID" && !ignored) {
-        await applyBalanceEffect(
-          tx,
-          { type: input.type, amount: perOccurrenceAmount, accountId: input.accountId, toAccountId: input.toAccountId },
-          1
-        );
-      }
+        1
+      );
     }
   });
 
