@@ -1,6 +1,14 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { currentMonthYear, formatCurrency, formatDate, monthRange, toNumber } from "@/lib/utils";
+import {
+  currentInvoiceMonthYear,
+  formatCurrency,
+  formatDate,
+  invoiceRange,
+  isInvoiceOpen,
+  monthName,
+  toNumber,
+} from "@/lib/utils";
 import PageHeader from "@/components/PageHeader";
 import MonthSwitcher from "@/components/MonthSwitcher";
 import EmptyState from "@/components/EmptyState";
@@ -18,13 +26,14 @@ export default async function FaturaPage({
 }) {
   const { id } = await params;
   const query = await searchParams;
-  const defaults = currentMonthYear();
-  const month = Number(query.month) || defaults.month;
-  const year = Number(query.year) || defaults.year;
-  const { start, end } = monthRange(month, year);
 
   const card = await prisma.creditCard.findUnique({ where: { id } });
   if (!card) notFound();
+
+  const defaults = currentInvoiceMonthYear(card.closingDay);
+  const month = Number(query.month) || defaults.month;
+  const year = Number(query.year) || defaults.year;
+  const { start, end } = invoiceRange(month, year, card.closingDay);
 
   const transactions = await prisma.transaction.findMany({
     where: { creditCardId: id, type: "CARD_EXPENSE", date: { gte: start, lt: end } },
@@ -34,6 +43,10 @@ export default async function FaturaPage({
 
   const total = transactions.reduce((sum, t) => sum + toNumber(t.amount), 0);
   const hasPending = transactions.some((t) => t.status === "PENDING");
+  const open = isInvoiceOpen(end);
+
+  const dueDay = Math.min(card.dueDay, 28);
+  const dueDate = new Date(Date.UTC(year, month - 1, dueDay));
 
   return (
     <div>
@@ -45,12 +58,20 @@ export default async function FaturaPage({
 
       <div className={styles.card}>
         <div className={styles.totalRow}>
-          <span>Total da fatura</span>
+          <div>
+            <span>Total da fatura</span>
+            <span className={open ? styles.badgeOpen : styles.badgeClosed}>
+              {open ? "Fatura aberta" : "Fatura fechada"}
+            </span>
+          </div>
           <span className={styles.total}>{formatCurrency(total)}</span>
         </div>
+        <p className={styles.dueDate}>
+          {monthName(month)}/{year} · vence em {formatDate(dueDate)}
+        </p>
 
         {transactions.length === 0 ? (
-          <EmptyState title="Nenhum lançamento neste cartão para o mês selecionado." />
+          <EmptyState title="Nenhum lançamento neste cartão para a fatura selecionada." />
         ) : (
           <>
             <table className={styles.table}>

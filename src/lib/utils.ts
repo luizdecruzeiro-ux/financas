@@ -74,6 +74,27 @@ export function isOverdue(date: Date | string, status: string): boolean {
 
 export type RepeatUnit = "day" | "week" | "month" | "year";
 
+// Credit card billing cycle: charges on/after `closingDay` of a month belong
+// to the invoice that closes the following month, not the current one. The
+// invoice "labelled" (month, year) covers [closingDay of previous month,
+// closingDay of this month).
+export function invoiceRange(month: number, year: number, closingDay: number): { start: Date; end: Date } {
+  const end = new Date(Date.UTC(year, month - 1, closingDay));
+  const start = new Date(Date.UTC(year, month - 2, closingDay));
+  return { start, end };
+}
+
+// Which invoice (month/year label) today's charges currently fall into.
+export function currentInvoiceMonthYear(closingDay: number): { month: number; year: number } {
+  const today = todayUTC();
+  const base = { month: today.getUTCMonth() + 1, year: today.getUTCFullYear() };
+  return today.getUTCDate() >= closingDay ? shiftMonth(base.month, base.year, 1) : base;
+}
+
+export function isInvoiceOpen(invoiceEnd: Date): boolean {
+  return invoiceEnd > todayUTC();
+}
+
 export function addInterval(date: Date, unit: RepeatUnit, amount: number): Date {
   const result = new Date(date);
   switch (unit) {

@@ -29,16 +29,57 @@
   font-size: 1rem;
 }
 
-.limit {
-  font-size: 0.9rem;
-  color: var(--text-light);
-  margin-top: 10px;
+.invoiceTotal {
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin-top: 12px;
+  color: var(--expense);
 }
 
 .days {
   font-size: 0.8rem;
   color: var(--text-light);
   margin-top: 4px;
+}
+
+.progressTrack {
+  height: 8px;
+  background: var(--surface-alt);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 6px;
+}
+
+.availableLimit {
+  font-size: 0.78rem;
+  color: var(--text-light);
+  margin-top: 6px;
+}
+
+.badgeOpen {
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--primary-dark);
+  background: var(--surface-alt);
+  border-radius: 999px;
+  padding: 2px 9px;
+  white-space: nowrap;
+}
+
+.badgeClosed {
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--text-light);
+  background: var(--surface-alt);
+  border-radius: 999px;
+  padding: 2px 9px;
+  white-space: nowrap;
 }
 
 .cardActions {

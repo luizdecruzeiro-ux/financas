@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { monthRange } from "@/lib/utils";
+import { invoiceRange } from "@/lib/utils";
 
 export type CreditCardInput = {
   name: string;
@@ -29,9 +29,12 @@ export async function deleteCreditCard(id: string) {
 }
 
 export async function payInvoice(creditCardId: string, month: number, year: number) {
-  const { start, end } = monthRange(month, year);
-
   await prisma.$transaction(async (tx) => {
+    const card = await tx.creditCard.findUnique({ where: { id: creditCardId } });
+    if (!card) return;
+
+    const { start, end } = invoiceRange(month, year, card.closingDay);
+
     const pending = await tx.transaction.findMany({
       where: {
         creditCardId,
@@ -48,8 +51,7 @@ export async function payInvoice(creditCardId: string, month: number, year: numb
       data: { status: "PAID" },
     });
 
-    const card = await tx.creditCard.findUnique({ where: { id: creditCardId } });
-    if (card?.paymentAccountId) {
+    if (card.paymentAccountId) {
       const total = pending.reduce((sum, t) => sum + Number(t.amount), 0);
       await tx.account.update({
         where: { id: card.paymentAccountId },
