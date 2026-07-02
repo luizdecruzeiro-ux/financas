@@ -146,7 +146,19 @@ export default function TransactionForm({
       amount: Number(amount),
       date,
       type: type as TransactionInput["type"],
-      status: type === "CARD_EXPENSE" ? "PENDING" : type === "TRANSFER" ? "PAID" : paid ? "PAID" : "PENDING",
+      // Card expenses are settled via payInvoice, so a new one starts PENDING;
+      // when editing, keep whatever status it already has (an already-paid
+      // charge must not silently go back to pending).
+      status:
+        type === "CARD_EXPENSE"
+          ? transaction?.type === "CARD_EXPENSE"
+            ? transaction.status
+            : "PENDING"
+          : type === "TRANSFER"
+          ? "PAID"
+          : paid
+          ? "PAID"
+          : "PENDING",
       accountId: type === "CARD_EXPENSE" ? null : accountId || null,
       toAccountId: type === "TRANSFER" ? toAccountId || null : null,
       creditCardId: type === "CARD_EXPENSE" ? creditCardId || null : null,

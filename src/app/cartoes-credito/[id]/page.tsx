@@ -1,19 +1,9 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import {
-  currentInvoiceMonthYear,
-  formatCurrency,
-  formatDate,
-  invoiceRange,
-  isInvoiceOpen,
-  monthName,
-  toNumber,
-} from "@/lib/utils";
+import { currentInvoiceMonthYear, invoiceRange, isInvoiceOpen, toNumber } from "@/lib/utils";
+import { serializeAccount, serializeCreditCard, type TransactionView } from "@/types";
 import PageHeader from "@/components/PageHeader";
-import MonthSwitcher from "@/components/MonthSwitcher";
-import EmptyState from "@/components/EmptyState";
-import FaturaActions from "./FaturaActions";
-import styles from "./fatura.module.css";
+import FaturaClient from "./FaturaClient";
 
 export const dynamic = "force-dynamic";
 
@@ -35,67 +25,52 @@ export default async function FaturaPage({
   const year = Number(query.year) || defaults.year;
   const { start, end } = invoiceRange(month, year, card.closingDay);
 
-  const transactions = await prisma.transaction.findMany({
-    where: { creditCardId: id, type: "CARD_EXPENSE", date: { gte: start, lt: end } },
-    include: { category: true },
-    orderBy: { date: "asc" },
-  });
+  const [transactions, categories, accounts, creditCards] = await Promise.all([
+    prisma.transaction.findMany({
+      where: { creditCardId: id, type: "CARD_EXPENSE", date: { gte: start, lt: end } },
+      include: { category: true, account: true, toAccount: true, creditCard: true },
+      orderBy: { date: "asc" },
+    }),
+    prisma.category.findMany({ orderBy: { name: "asc" } }),
+    prisma.account.findMany({ orderBy: { name: "asc" } }),
+    prisma.creditCard.findMany({ orderBy: { name: "asc" } }),
+  ]);
 
-  const total = transactions.reduce((sum, t) => sum + toNumber(t.amount), 0);
-  const hasPending = transactions.some((t) => t.status === "PENDING");
+  const serializedTransactions: TransactionView[] = transactions.map((t) => ({
+    ...t,
+    amount: toNumber(t.amount),
+    account: t.account ? serializeAccount(t.account) : null,
+    toAccount: t.toAccount ? serializeAccount(t.toAccount) : null,
+    creditCard: t.creditCard ? serializeCreditCard(t.creditCard) : null,
+  }));
+
+  const total = serializedTransactions.reduce((sum, t) => sum + t.amount, 0);
   const open = isInvoiceOpen(end);
 
-  const dueDay = Math.min(card.dueDay, 28);
-  const dueDate = new Date(Date.UTC(year, month - 1, dueDay));
+  // Closing/due dates for the invoice labelled (month, year). Day is clamped
+  // to 28 to avoid rolling over on short months.
+  const closingDate = new Date(Date.UTC(year, month - 1, Math.min(card.closingDay, 28)));
+  const dueDate = new Date(Date.UTC(year, month - 1, Math.min(card.dueDay, 28)));
 
   return (
     <div>
       <PageHeader
         title={`Fatura — ${card.name}`}
-        subtitle={`Limite de ${formatCurrency(toNumber(card.limit))}`}
-        actions={<MonthSwitcher month={month} year={year} />}
+        subtitle={`Limite de ${toNumber(card.limit).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`}
       />
-
-      <div className={styles.card}>
-        <div className={styles.totalRow}>
-          <div>
-            <span>Total da fatura</span>
-            <span className={open ? styles.badgeOpen : styles.badgeClosed}>
-              {open ? "Fatura aberta" : "Fatura fechada"}
-            </span>
-          </div>
-          <span className={styles.total}>{formatCurrency(total)}</span>
-        </div>
-        <p className={styles.dueDate}>
-          {monthName(month)}/{year} · vence em {formatDate(dueDate)}
-        </p>
-
-        {transactions.length === 0 ? (
-          <EmptyState title="Nenhum lançamento neste cartão para a fatura selecionada." />
-        ) : (
-          <>
-            <table className={styles.table}>
-              <tbody>
-                {transactions.map((t) => (
-                  <tr key={t.id}>
-                    <td>{formatDate(t.date)}</td>
-                    <td>{t.description}</td>
-                    <td>{t.category?.name ?? "—"}</td>
-                    <td className={styles.amount}>{formatCurrency(toNumber(t.amount))}</td>
-                    <td>
-                      <span className={t.status === "PAID" ? styles.paid : styles.pending}>
-                        {t.status === "PAID" ? "Paga" : "Pendente"}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {hasPending ? <FaturaActions creditCardId={id} month={month} year={year} /> : null}
-          </>
-        )}
-      </div>
+      <FaturaClient
+        creditCardId={id}
+        month={month}
+        year={year}
+        transactions={serializedTransactions}
+        categories={categories}
+        accounts={accounts.map(serializeAccount)}
+        creditCards={creditCards.map(serializeCreditCard)}
+        total={total}
+        open={open}
+        closingDate={closingDate.toISOString()}
+        dueDate={dueDate.toISOString()}
+      />
     </div>
   );
 }
